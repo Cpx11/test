@@ -309,7 +309,7 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
 .socials a:hover{background:var(--grad-royal);color:#fff;transform:translateY(-3px)}
 .f-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;justify-content:space-between;font-size:13px;color:#8f9dd8;flex-wrap:wrap;gap:10px}
 
-/* Modals */
+/* Modals - Enhanced */
 .modal-back{
   position:fixed;inset:0;background:rgba(6,10,32,.6);backdrop-filter:blur(6px);
   z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;
@@ -322,12 +322,55 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
   animation:pop .35s ease;
   max-height:90vh;overflow-y:auto;
 }
-.modal .close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--muted);transition:var(--trans)}
+.modal .close{
+  position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:10px;
+  display:grid;place-items:center;color:var(--muted);transition:var(--trans);
+  background:transparent;
+}
 .modal .close:hover{background:var(--bg);color:var(--ink)}
 .modal h2{font-size:24px;margin-bottom:6px}
 .modal .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
 .modal .detail-item{margin:12px 0;display:flex;gap:12px;align-items:center}
 .modal .detail-item i{width:20px;color:var(--royal)}
+.modal .tabs{
+  display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:22px;
+}
+.modal .tabs button{
+  flex:1;padding:10px;border-radius:9px;font-weight:600;color:var(--muted);
+  transition:var(--trans);font-size:13px;background:transparent;border:none;
+}
+.modal .tabs button.on{
+  background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm);
+}
+.modal .field{margin-bottom:14px}
+.modal .field label{
+  display:block;font-size:12px;color:var(--muted);margin-bottom:6px;
+  font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+}
+.modal .field input,.modal .field select{
+  width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);font-size:14px;outline:none;transition:var(--trans);
+}
+.modal .field input:focus,.modal .field select:focus{
+  border-color:var(--royal);background:var(--card);box-shadow:0 0 0 3px color-mix(in oklab,var(--royal) 15%,transparent);
+}
+.modal .google-btn{
+  width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);
+  background:var(--card);font-weight:600;font-size:14px;
+  display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;transition:var(--trans);
+}
+.modal .google-btn:hover{border-color:var(--royal)}
+.modal .divider{
+  text-align:center;margin:18px 0;color:var(--muted);font-size:12px;position:relative;
+}
+.modal .divider:before,.modal .divider:after{
+  content:"";position:absolute;top:50%;width:40%;height:1px;background:var(--line);
+}
+.modal .divider:before{left:0}.modal .divider:after{right:0}
+.modal .tiny{
+  font-size:12px;color:var(--muted);text-align:center;margin-top:16px;
+}
+.modal .tiny a{color:var(--royal);font-weight:600}
 
 /* Toasts */
 .toasts{position:fixed;top:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:10px}
@@ -698,7 +741,7 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
   </div>
 </div>
 
-<!-- ===== AUTH MODAL ===== -->
+<!-- ===== AUTH MODAL (RESTORED DESIGN) ===== -->
 <div class="modal-back" id="authModal">
   <div class="modal">
     <button class="close" onclick="closeAuth()"><i class="fa-solid fa-xmark"></i></button>
@@ -996,8 +1039,6 @@ let currentUser = null;
 let userRole = "student";
 let currentCourseId = null;
 let currentJobId = null;
-let enrolledCourses = []; // for local fallback
-let applications = []; // for local fallback
 
 // =========================================================
 // FIREBASE AUTH FUNCTIONS
@@ -1259,7 +1300,6 @@ function switchStudentPanel(panel) {
   const target = document.getElementById(`panel-${panel}`);
   if (target) target.classList.add("active");
   
-  // Update subheading
   const subMap = {
     overview: "Here's your career progress this week.",
     mycourses: "Track your learning journey.",
@@ -1273,7 +1313,6 @@ function switchStudentPanel(panel) {
   };
   document.getElementById("stuSub").textContent = subMap[panel] || "";
   
-  // Refresh data for certain panels
   if (panel === "mycourses") renderMyCourses();
   if (panel === "jobs") renderDashboardJobs();
   if (panel === "applications") renderApplications();
@@ -1282,7 +1321,6 @@ function switchStudentPanel(panel) {
 
 // ---- Dashboard Data Rendering ----
 async function updateDashboardData() {
-  // Update counts from Firestore or local
   let enrolled = [];
   let certs = [];
   if (db && currentUser) {
@@ -1301,14 +1339,11 @@ async function updateDashboardData() {
   }
   document.getElementById("dashCourseCount").textContent = enrolled.length || 0;
   document.getElementById("dashCertCount").textContent = certs.length || 0;
-  
-  // Render progress
   renderStudentProgress();
 }
 
 function renderStudentProgress() {
   const container = document.getElementById("stuProgress");
-  // For demo, show some static progress bars
   const items = [
     {t:"UX Foundations",p:100,c:"var(--grad-emerald)"},
     {t:"Advanced Figma",p:72,c:"var(--grad-royal)"},
@@ -1332,10 +1367,8 @@ function renderMyCourses() {
   let enrolled = [];
   if (db && currentUser) {
     db.collection("users").doc(currentUser.uid).get().then(doc => {
-      if (doc.exists) {
-        enrolled = doc.data().enrolledCourses || [];
-        renderCourseList();
-      }
+      if (doc.exists) enrolled = doc.data().enrolledCourses || [];
+      renderCourseList();
     }).catch(() => renderCourseList());
   } else {
     const user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
@@ -1445,7 +1478,7 @@ function openCourseDetail(courseId) {
   document.getElementById("courseModalPrice").textContent = course.price;
   document.getElementById("courseModalLevel").textContent = course.lvl;
   document.getElementById("courseModal").classList.add("on");
-  // Check if already enrolled
+  // Check enrollment status
   let enrolled = [];
   if (db && currentUser) {
     db.collection("users").doc(currentUser.uid).get().then(doc => {
@@ -1486,7 +1519,7 @@ function openJobDetail(jobId) {
   document.getElementById("jobModalType").textContent = job.type;
   document.getElementById("jobModalTags").textContent = job.tags.join(", ");
   document.getElementById("jobModal").classList.add("on");
-  // Check if already applied
+  // Check application status
   let applied = false;
   if (db && currentUser) {
     db.collection("applications").where("userId", "==", currentUser.uid).where("jobId", "==", jobId).get().then(snapshot => {
@@ -1786,10 +1819,9 @@ function initAuthListener() {
 // FALLBACK LOCAL MODE
 // =========================================================
 
-// Override functions if Firebase not available
 if (!auth) {
   console.log("ℹ️ Running in local mode.");
-  // Override enrollCourse, applyJob, etc. to use localStorage
+  // Override functions to use localStorage
   const origEnroll = enrollCourse;
   enrollCourse = function(courseId) {
     if (!currentUser) { toast("warn", "Please sign in first."); return; }
@@ -1820,7 +1852,7 @@ if (!auth) {
     document.getElementById("jobModal").classList.remove("on");
   };
   
-  // Override auth functions to use localStorage
+  // Override auth
   const origSubmit = submitAuth;
   submitAuth = function() {
     const email = document.getElementById("fEmail").value.trim().toLowerCase();
@@ -1831,7 +1863,6 @@ if (!auth) {
     let finalRole = role;
     if (ADMIN_EMAILS.includes(email)) finalRole = "admin";
     const user = { email, name, role: finalRole, enrolledCourses: [], applications: [], certificates: [] };
-    // Merge with existing if any
     const existing = JSON.parse(localStorage.getItem("sh101-user") || "{}");
     Object.assign(user, existing);
     localStorage.setItem("sh101-user", JSON.stringify(user));
@@ -1891,7 +1922,6 @@ window.addEventListener("load", () => {
     if (icon) icon.className = "fa-solid fa-sun";
   }
   
-  // Restore session
   const saved = localStorage.getItem("sh101-user");
   if (saved) {
     try {
