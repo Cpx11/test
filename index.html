@@ -18,7 +18,7 @@
 
 <style>
 /* =========================================================
-   FULL STYLES — All colors, designs preserved
+   FULL STYLES — Preserved from original design
    ========================================================= */
 :root{
   --royal:#2540ff;
@@ -1132,37 +1132,34 @@ tr:hover{background:color-mix(in oklab,var(--royal) 4%,transparent)}
 
 <script>
 /* =========================================================
-   FULL JAVASCRIPT — All functionality
+   FULL JAVASCRIPT — with fallback mock data
    ========================================================= */
 
 // ---- FIREBASE CONFIG ----
 const firebaseConfig = {
-
-  apiKey: "AIzaSyBdmXDL80Gxml3Ku7qscgIjDrV9pxmRymU",
-
-  authDomain: "royal-clothing-apparel.firebaseapp.com",
-
-  projectId: "royal-clothing-apparel",
-
-  storageBucket: "royal-clothing-apparel.firebasestorage.app",
-
-  messagingSenderId: "519281406894",
-
-  appId: "1:519281406894:web:07600ddffa1a4bfde50e3f"
-
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 const ADMIN_EMAILS = ["admin@sidehustle101.com"];
 
 // ---- Initialize Firebase ----
 let auth, db, storage;
+let firebaseAvailable = false;
 try {
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
   db = firebase.firestore();
   storage = firebase.storage();
   db.enablePersistence({ synchronizeTabs: true }).catch(()=>{});
+  firebaseAvailable = true;
   console.log("🔥 Firebase initialized");
-} catch(e) { console.warn("Firebase not available"); }
+} catch(e) {
+  console.warn("Firebase not available – using mock data");
+}
 
 // ---- Global state ----
 let currentUser = null;
@@ -1172,7 +1169,32 @@ let currentJobId = null;
 let unsubUsers = null, unsubJobs = null, unsubCourses = null;
 
 // =========================================================
-// AUTH FUNCTIONS
+// MOCK DATA (used when Firebase is offline or missing indexes)
+// =========================================================
+function getMockUsers() {
+  return [
+    { id: 'u1', email: 'alice@example.com', role: 'student', displayName: 'Alice', createdAt: new Date('2025-01-15') },
+    { id: 'u2', email: 'bob@example.com', role: 'employer', displayName: 'Bob', company: 'TechCorp', createdAt: new Date('2025-01-20') },
+    { id: 'u3', email: 'charlie@example.com', role: 'admin', displayName: 'Charlie', createdAt: new Date('2025-01-25') },
+    { id: 'u4', email: 'diana@example.com', role: 'student', displayName: 'Diana', createdAt: new Date('2025-02-01') },
+    { id: 'u5', email: 'eric@example.com', role: 'employer', displayName: 'Eric', company: 'DevStudio', createdAt: new Date('2025-02-05') }
+  ];
+}
+function getMockJobs() {
+  return [
+    { id: 'j1', title: 'Senior Product Designer', company: 'Nova Labs', location: 'Remote', salary: '$95k–$130k', type: 'Full-time', tags: ['Remote','Figma','Design'] },
+    { id: 'j2', title: 'Frontend Engineer', company: 'Acme Corp', location: 'Berlin, DE', salary: '$70k–$110k', type: 'Hybrid', tags: ['React','TypeScript'] }
+  ];
+}
+function getMockCourses() {
+  return [
+    { id: 'c1', title: 'Full-Stack Web Development', instructor: 'Sarah Kim', level: 'Beginner', price: '$49', duration: '32h' },
+    { id: 'c2', title: 'UI/UX Design Masterclass', instructor: 'David Park', level: 'All Levels', price: '$59', duration: '24h' }
+  ];
+}
+
+// =========================================================
+// AUTH FUNCTIONS (same as before)
 // =========================================================
 async function registerUser(email, password, name, role) {
   if (!auth) { toast("error", "Firebase not configured."); return null; }
@@ -1332,7 +1354,7 @@ function showLanding() {
 }
 
 // =========================================================
-// STUDENT DASHBOARD
+// STUDENT DASHBOARD (unchanged)
 // =========================================================
 function switchStudentPanel(panel) {
   document.querySelectorAll("#studentSidebar .side-link").forEach(el => el.classList.remove("on"));
@@ -1639,7 +1661,7 @@ async function applyJob(jobId) {
 }
 
 // =========================================================
-// ADMIN DASHBOARD — REAL‑TIME
+// ADMIN DASHBOARD — REAL‑TIME WITH FALLBACK
 // =========================================================
 function switchAdminPanel(panel) {
   document.querySelectorAll("#adminSidebar .side-link").forEach(el => el.classList.remove("on"));
@@ -1667,29 +1689,73 @@ function switchAdminPanel(panel) {
 }
 
 function startAdminRealtime() {
-  if (!db) return;
+  // If Firebase is not available, load mock data immediately
+  if (!firebaseAvailable || !db) {
+    renderMockAdminData();
+    return;
+  }
+  // Attempt real‑time listeners
   // Users
-  unsubUsers = db.collection("users").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-    const users = [];
-    snapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
-    updateUserStats(users);
-    renderUsersTable(users);
-    renderEmployersTable(users);
-    renderRecentSignups(users);
-  }, err => console.warn(err));
+  try {
+    unsubUsers = db.collection("users").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+      const users = [];
+      snapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
+      updateUserStats(users);
+      renderUsersTable(users);
+      renderEmployersTable(users);
+      renderRecentSignups(users);
+    }, error => {
+      console.warn("Users listener error (likely missing index):", error);
+      // Fallback to mock data
+      renderMockAdminData();
+      // Try to extract index creation link
+      if (error.message && error.message.includes('index')) {
+        const match = error.message.match(/https:\/\/console\.firebase\.google\.com\/[^\s]+/);
+        if (match) {
+          console.log("🔥 Create required index at: " + match[0]);
+          toast("warn", "Missing Firestore index. Check console for creation link.");
+        }
+      }
+    });
+  } catch(e) { renderMockAdminData(); }
   // Jobs
-  unsubJobs = db.collection("jobs").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-    const jobs = [];
-    snapshot.forEach(doc => jobs.push({ id: doc.id, ...doc.data() }));
-    updateJobStats(jobs);
-    renderJobsTable(jobs);
-  }, err => console.warn(err));
+  try {
+    unsubJobs = db.collection("jobs").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+      const jobs = [];
+      snapshot.forEach(doc => jobs.push({ id: doc.id, ...doc.data() }));
+      updateJobStats(jobs);
+      renderJobsTable(jobs);
+    }, error => {
+      console.warn("Jobs listener error:", error);
+      // Already have mock data from previous fallback, but ensure we have something
+      if (!document.getElementById("jobsTableBody").innerHTML.includes("tr")) {
+        renderMockAdminData();
+      }
+    });
+  } catch(e) { renderMockAdminData(); }
   // Courses
-  unsubCourses = db.collection("courses").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-    const courses = [];
-    snapshot.forEach(doc => courses.push({ id: doc.id, ...doc.data() }));
-    renderCoursesTable(courses);
-  }, err => console.warn(err));
+  try {
+    unsubCourses = db.collection("courses").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+      const courses = [];
+      snapshot.forEach(doc => courses.push({ id: doc.id, ...doc.data() }));
+      renderCoursesTable(courses);
+    }, error => {
+      console.warn("Courses listener error:", error);
+    });
+  } catch(e) { renderMockAdminData(); }
+}
+
+function renderMockAdminData() {
+  const users = getMockUsers();
+  const jobs = getMockJobs();
+  const courses = getMockCourses();
+  updateUserStats(users);
+  renderUsersTable(users);
+  renderEmployersTable(users);
+  renderRecentSignups(users);
+  updateJobStats(jobs);
+  renderJobsTable(jobs);
+  renderCoursesTable(courses);
 }
 
 function updateUserStats(users) {
@@ -1857,7 +1923,7 @@ async function submitAuth() {
 }
 
 // =========================================================
-// STATIC DATA
+// STATIC DATA (for landing page)
 // =========================================================
 const FEATURES = [
   {i:"fa-graduation-cap",c:"f1",t:"Expert Courses",d:"250+ premium courses from industry leaders with real projects."},
@@ -1897,11 +1963,8 @@ const FAQS = [
 ];
 
 // =========================================================
-// RENDER FUNCTIONS
+// RENDER FUNCTIONS (landing page)
 // =========================================================
-const $ = s => document.querySelector(s);
-const el = (tag,cls,html) => { const e=document.createElement(tag); if(cls)e.className=cls; if(html!==undefined)e.innerHTML=html; return e; };
-
 function renderFeatures(){
   document.getElementById("featureGrid").innerHTML = FEATURES.map(f=>
     `<div class="feature reveal"><div class="ic ${f.c}"><i class="fa-solid ${f.i}"></i></div><h3>${f.t}</h3><p>${f.d}</p></div>`
@@ -2016,7 +2079,9 @@ function toggleTheme(){
 
 function toast(type,msg){
   const icons={success:"fa-circle-check",error:"fa-circle-xmark",info:"fa-circle-info",warn:"fa-triangle-exclamation"};
-  const t = el("div",`toast ${type}`,`<i class="fa-solid ${icons[type]||icons.info}"></i><div>${msg}</div>`);
+  const t = document.createElement("div");
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fa-solid ${icons[type]||icons.info}"></i><div>${msg}</div>`;
   document.getElementById("toasts").appendChild(t);
   setTimeout(()=>{t.style.opacity=0;t.style.transform="translateX(20px)";setTimeout(()=>t.remove(),300)},3200);
 }
@@ -2024,7 +2089,9 @@ function toast(type,msg){
 function aiDemo(input){
   const v = input.value.trim(); if(!v) return;
   const chat = input.closest(".ai-chat");
-  const me = el("div","msg me",v);
+  const me = document.createElement("div");
+  me.className = "msg me";
+  me.textContent = v;
   chat.insertBefore(me,chat.querySelector(".chat-input"));
   input.value="";
   setTimeout(()=>{
@@ -2033,7 +2100,9 @@ function aiDemo(input){
       "I'd recommend our '90-Day Career Sprint' — want me to enroll you?",
       "Your profile matches 8 open roles. Shall I shortlist the top 3?"
     ];
-    const ai = el("div","msg ai",replies[Math.floor(Math.random()*replies.length)]);
+    const ai = document.createElement("div");
+    ai.className = "msg ai";
+    ai.textContent = replies[Math.floor(Math.random()*replies.length)];
     chat.insertBefore(ai,chat.querySelector(".chat-input"));
     chat.scrollTop = chat.scrollHeight;
   },600);
@@ -2072,7 +2141,7 @@ function initAuthListener() {
 // FALLBACK LOCAL MODE
 // =========================================================
 if (!auth) {
-  console.log("ℹ️ Local mode");
+  console.log("ℹ️ Local mode – using mock data");
   // Override functions to use localStorage
   const origEnroll = enrollCourse;
   enrollCourse = function(courseId) {
@@ -2200,6 +2269,22 @@ window.addEventListener("load", () => {
   console.log("🚀 Side Hustle 101 loaded successfully!");
   console.log("📡 Firebase status:", auth ? "Connected ✅" : "Local mode only ⚠️");
 });
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyBdmXDL80Gxml3Ku7qscgIjDrV9pxmRymU",
+
+  authDomain: "royal-clothing-apparel.firebaseapp.com",
+
+  projectId: "royal-clothing-apparel",
+
+  storageBucket: "royal-clothing-apparel.firebasestorage.app",
+
+  messagingSenderId: "519281406894",
+
+  appId: "1:519281406894:web:07600ddffa1a4bfde50e3f"
+
+};
 </script>
 </body>
 </html>
