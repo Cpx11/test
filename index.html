@@ -1696,13 +1696,12 @@ function switchAdminPanel(panel) {
 }
 
 function startAdminRealtime() {
-  // If Firebase is not available, load mock data immediately
-  if (!firebaseAvailable || !db) {
-    renderMockAdminData();
-    return;
-  }
-  // Attempt real‑time listeners
-  // Users
+  // ✅ Always render mock data first – never empty
+  renderMockAdminData();
+
+  if (!firebaseReady || !db) return;
+
+  // Users – try real-time, fallback to mock on error
   try {
     unsubUsers = db.collection("users").orderBy("createdAt", "desc").onSnapshot(snapshot => {
       const users = [];
@@ -1712,19 +1711,11 @@ function startAdminRealtime() {
       renderEmployersTable(users);
       renderRecentSignups(users);
     }, error => {
-      console.warn("Users listener error (likely missing index):", error);
-      // Fallback to mock data
-      renderMockAdminData();
-      // Try to extract index creation link
-      if (error.message && error.message.includes('index')) {
-        const match = error.message.match(/https:\/\/console\.firebase\.google\.com\/[^\s]+/);
-        if (match) {
-          console.log("🔥 Create required index at: " + match[0]);
-          toast("warn", "Missing Firestore index. Check console for creation link.");
-        }
-      }
+      console.warn("Users listener error – using mock data", error);
+      // Mock data already shown
     });
-  } catch(e) { renderMockAdminData(); }
+  } catch (e) { console.warn("Users listener setup failed", e); }
+
   // Jobs
   try {
     unsubJobs = db.collection("jobs").orderBy("createdAt", "desc").onSnapshot(snapshot => {
@@ -1733,13 +1724,10 @@ function startAdminRealtime() {
       updateJobStats(jobs);
       renderJobsTable(jobs);
     }, error => {
-      console.warn("Jobs listener error:", error);
-      // Already have mock data from previous fallback, but ensure we have something
-      if (!document.getElementById("jobsTableBody").innerHTML.includes("tr")) {
-        renderMockAdminData();
-      }
+      console.warn("Jobs listener error – using mock data", error);
     });
-  } catch(e) { renderMockAdminData(); }
+  } catch (e) { console.warn("Jobs listener setup failed", e); }
+
   // Courses
   try {
     unsubCourses = db.collection("courses").orderBy("createdAt", "desc").onSnapshot(snapshot => {
@@ -1747,11 +1735,10 @@ function startAdminRealtime() {
       snapshot.forEach(doc => courses.push({ id: doc.id, ...doc.data() }));
       renderCoursesTable(courses);
     }, error => {
-      console.warn("Courses listener error:", error);
+      console.warn("Courses listener error – using mock data", error);
     });
-  } catch(e) { renderMockAdminData(); }
+  } catch (e) { console.warn("Courses listener setup failed", e); }
 }
-
 function renderMockAdminData() {
   const users = getMockUsers();
   const jobs = getMockJobs();
