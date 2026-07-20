@@ -19,7 +19,7 @@
 <style>
 /* =========================================================
    SIDE HUSTLE 101 — Single-file premium career platform
-   WITH FIREBASE INTEGRATION
+   WITH FIREBASE INTEGRATION — FULLY FUNCTIONAL
    ========================================================= */
 :root{
   --royal:#2540ff;
@@ -208,6 +208,7 @@ section{padding:90px 0}
 .course{
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
   overflow:hidden;transition:var(--trans);display:flex;flex-direction:column;
+  cursor:pointer;
 }
 .course:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
 .course .thumb{height:170px;position:relative;background:var(--grad-royal);display:grid;place-items:center;color:#fff;font-size:44px}
@@ -224,6 +225,7 @@ section{padding:90px 0}
 .job{
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);padding:24px;
   transition:var(--trans);display:flex;gap:16px;align-items:flex-start;
+  cursor:pointer;
 }
 .job:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:var(--royal)}
 .job .logo{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;font-size:22px;color:#fff;flex-shrink:0}
@@ -307,7 +309,7 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
 .socials a:hover{background:var(--grad-royal);color:#fff;transform:translateY(-3px)}
 .f-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;justify-content:space-between;font-size:13px;color:#8f9dd8;flex-wrap:wrap;gap:10px}
 
-/* Modal */
+/* Modals */
 .modal-back{
   position:fixed;inset:0;background:rgba(6,10,32,.6);backdrop-filter:blur(6px);
   z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;
@@ -315,34 +317,17 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
 }
 .modal-back.on{display:flex}
 .modal{
-  background:var(--card);border-radius:var(--radius-xl);width:100%;max-width:440px;
+  background:var(--card);border-radius:var(--radius-xl);width:100%;max-width:520px;
   padding:36px;box-shadow:var(--shadow-lg);position:relative;
   animation:pop .35s ease;
+  max-height:90vh;overflow-y:auto;
 }
 .modal .close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--muted);transition:var(--trans)}
 .modal .close:hover{background:var(--bg);color:var(--ink)}
 .modal h2{font-size:24px;margin-bottom:6px}
 .modal .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
-.tabs{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:22px}
-.tabs button{flex:1;padding:10px;border-radius:9px;font-weight:600;color:var(--muted);transition:var(--trans);font-size:13px}
-.tabs button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm)}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-.field input,.field select,.field textarea{
-  width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);
-  font-size:14px;outline:none;transition:var(--trans);
-}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--royal);background:var(--card);box-shadow:0 0 0 3px color-mix(in oklab,var(--royal) 15%,transparent)}
-.google-btn{
-  width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);
-  font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;transition:var(--trans);
-}
-.google-btn:hover{border-color:var(--royal)}
-.divider{text-align:center;margin:18px 0;color:var(--muted);font-size:12px;position:relative}
-.divider:before,.divider:after{content:"";position:absolute;top:50%;width:40%;height:1px;background:var(--line)}
-.divider:before{left:0}.divider:after{right:0}
-.tiny{font-size:12px;color:var(--muted);text-align:center;margin-top:16px}
-.tiny a{color:var(--royal);font-weight:600}
+.modal .detail-item{margin:12px 0;display:flex;gap:12px;align-items:center}
+.modal .detail-item i{width:20px;color:var(--royal)}
 
 /* Toasts */
 .toasts{position:fixed;top:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:10px}
@@ -395,6 +380,10 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
 .pill.y{background:color-mix(in oklab,var(--gold) 20%,transparent);color:#b47f00}
 .pill.b{background:color-mix(in oklab,var(--royal) 12%,transparent);color:var(--royal)}
 .pill.r{background:rgba(239,68,68,.12);color:#ef4444}
+
+/* Dashboard panels (hidden by default) */
+.dash-panel{display:none}
+.dash-panel.active{display:block}
 
 /* Skeletons */
 .skel{background:linear-gradient(90deg,var(--line) 25%,color-mix(in oklab,var(--line) 60%,var(--card)) 50%,var(--line) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:10px}
@@ -675,64 +664,209 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
 
 </div><!-- /#app -->
 
-<!-- ===== DASHBOARDS ===== -->
+<!-- ===== COURSE DETAIL MODAL ===== -->
+<div class="modal-back" id="courseModal">
+  <div class="modal">
+    <button class="close" onclick="document.getElementById('courseModal').classList.remove('on')"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="courseModalTitle">Course Title</h2>
+    <div class="sub" id="courseModalInstructor">by Instructor</div>
+    <div id="courseModalBody">
+      <div class="detail-item"><i class="fa-solid fa-clock"></i> <span id="courseModalDur">32h</span></div>
+      <div class="detail-item"><i class="fa-solid fa-star"></i> <span id="courseModalRate">4.9</span></div>
+      <div class="detail-item"><i class="fa-solid fa-tag"></i> <span id="courseModalPrice">$49</span></div>
+      <div class="detail-item"><i class="fa-solid fa-layer-group"></i> <span id="courseModalLevel">Beginner</span></div>
+      <p style="margin:16px 0;color:var(--muted);line-height:1.6">This comprehensive course covers everything you need to master this skill. Includes real-world projects, quizzes, and a final exam to earn your certificate.</p>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" id="courseEnrollBtn" onclick="enrollCourse()"><i class="fa-solid fa-plus"></i> Enroll Now</button>
+  </div>
+</div>
 
-<!-- STUDENT -->
+<!-- ===== JOB DETAIL MODAL ===== -->
+<div class="modal-back" id="jobModal">
+  <div class="modal">
+    <button class="close" onclick="document.getElementById('jobModal').classList.remove('on')"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="jobModalTitle">Job Title</h2>
+    <div class="sub" id="jobModalCompany">by Company</div>
+    <div id="jobModalBody">
+      <div class="detail-item"><i class="fa-solid fa-location-dot"></i> <span id="jobModalLoc">Remote</span></div>
+      <div class="detail-item"><i class="fa-solid fa-sack-dollar"></i> <span id="jobModalSalary">$95k–$130k</span></div>
+      <div class="detail-item"><i class="fa-solid fa-briefcase"></i> <span id="jobModalType">Full-time</span></div>
+      <div class="detail-item"><i class="fa-solid fa-tags"></i> <span id="jobModalTags">Remote, Figma, Design</span></div>
+      <p style="margin:16px 0;color:var(--muted);line-height:1.6">We're looking for a talented professional to join our team. This role offers great benefits, remote work, and opportunities for growth.</p>
+    </div>
+    <button class="btn btn-emerald" style="width:100%;justify-content:center" id="jobApplyBtn" onclick="applyJob()"><i class="fa-solid fa-paper-plane"></i> Apply Now</button>
+  </div>
+</div>
+
+<!-- ===== AUTH MODAL ===== -->
+<div class="modal-back" id="authModal">
+  <div class="modal">
+    <button class="close" onclick="closeAuth()"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="authTitle">Welcome back</h2>
+    <p class="sub" id="authSub">Sign in to continue your journey.</p>
+    <div class="tabs">
+      <button id="tabLogin" class="on" onclick="switchAuth('login')">Sign In</button>
+      <button id="tabReg" onclick="switchAuth('register')">Register</button>
+    </div>
+    <form id="authForm" onsubmit="event.preventDefault();submitAuth()">
+      <div class="field" id="nameField" style="display:none">
+        <label>Full Name</label>
+        <input type="text" id="fName" placeholder="Jane Doe">
+      </div>
+      <div class="field" id="roleField" style="display:none">
+        <label>I am a</label>
+        <select id="fRole">
+          <option value="student">Student / Learner</option>
+          <option value="employer">Employer / Recruiter</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="fEmail" placeholder="you@email.com" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="fPass" placeholder="••••••••" required minlength="6">
+      </div>
+      <div id="forgotLink" style="text-align:right;margin:-6px 0 12px">
+        <a href="#" onclick="forgotPass();return false;" style="font-size:12px;color:var(--royal);font-weight:600">Forgot password?</a>
+      </div>
+      <button class="btn btn-primary" type="submit" style="width:100%;justify-content:center" id="authSubmit">Sign In</button>
+    </form>
+    <div class="divider">or continue with</div>
+    <button class="google-btn" onclick="googleLogin()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.9 6.1 29.8 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.9 6.1 29.8 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.7 0 10.8-2 14.7-5.4l-6.8-5.6c-2 1.4-4.6 2.3-7.9 2.3-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.6l6.8 5.6C41.7 36.5 44 30.9 44 24c0-1.3-.1-2.3-.4-3.5z"/></svg>
+      Continue with Google
+    </button>
+    <p class="tiny">By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
+  </div>
+</div>
+
+<!-- ===== STUDENT DASHBOARD ===== -->
 <div class="dash" id="dashStudent">
   <div class="dash-wrap">
-    <aside class="sidebar">
+    <aside class="sidebar" id="studentSidebar">
       <div class="side-brand"><div class="brand-mark"><i class="fa-solid fa-graduation-cap"></i></div><div style="font-weight:800">Side Hustle</div></div>
-      <div class="side-link on"><i class="fa-solid fa-gauge-high"></i> Overview</div>
-      <div class="side-link"><i class="fa-solid fa-book-open"></i> My Courses</div>
-      <div class="side-link"><i class="fa-solid fa-briefcase"></i> Jobs</div>
-      <div class="side-link"><i class="fa-solid fa-file-lines"></i> Applications</div>
-      <div class="side-link"><i class="fa-solid fa-award"></i> Certificates</div>
-      <div class="side-link"><i class="fa-solid fa-trophy"></i> Leaderboard</div>
-      <div class="side-link"><i class="fa-solid fa-robot"></i> AI Coach</div>
-      <div class="side-link"><i class="fa-solid fa-credit-card"></i> Payments</div>
-      <div class="side-link"><i class="fa-solid fa-gear"></i> Settings</div>
+      <div class="side-link on" data-panel="overview" onclick="switchStudentPanel('overview')"><i class="fa-solid fa-gauge-high"></i> Overview</div>
+      <div class="side-link" data-panel="mycourses" onclick="switchStudentPanel('mycourses')"><i class="fa-solid fa-book-open"></i> My Courses</div>
+      <div class="side-link" data-panel="jobs" onclick="switchStudentPanel('jobs')"><i class="fa-solid fa-briefcase"></i> Jobs</div>
+      <div class="side-link" data-panel="applications" onclick="switchStudentPanel('applications')"><i class="fa-solid fa-file-lines"></i> Applications</div>
+      <div class="side-link" data-panel="certificates" onclick="switchStudentPanel('certificates')"><i class="fa-solid fa-award"></i> Certificates</div>
+      <div class="side-link" data-panel="leaderboard" onclick="switchStudentPanel('leaderboard')"><i class="fa-solid fa-trophy"></i> Leaderboard</div>
+      <div class="side-link" data-panel="aicoach" onclick="switchStudentPanel('aicoach')"><i class="fa-solid fa-robot"></i> AI Coach</div>
+      <div class="side-link" data-panel="payments" onclick="switchStudentPanel('payments')"><i class="fa-solid fa-credit-card"></i> Payments</div>
+      <div class="side-link" data-panel="settings" onclick="switchStudentPanel('settings')"><i class="fa-solid fa-gear"></i> Settings</div>
       <div class="side-link" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Sign out</div>
     </aside>
     <main class="dash-main">
       <div class="dash-top">
         <div>
           <h1>Welcome back, <span id="stuName">Learner</span> 👋</h1>
-          <div class="sub">Here's your career progress this week.</div>
+          <div class="sub" id="stuSub">Here's your career progress this week.</div>
         </div>
         <div style="display:flex;gap:10px">
           <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
-          <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> Enroll in Course</button>
+          <button class="btn btn-primary" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'});showLanding();"><i class="fa-solid fa-plus"></i> Enroll in Course</button>
         </div>
       </div>
-      <div class="k-grid">
-        <div class="kpi"><div class="ic" style="background:var(--grad-royal)"><i class="fa-solid fa-book-open"></i></div><div class="lbl">Courses</div><div class="v">7</div><div class="d">+2 this month</div></div>
-        <div class="kpi"><div class="ic" style="background:var(--grad-emerald)"><i class="fa-solid fa-award"></i></div><div class="lbl">Certificates</div><div class="v">4</div><div class="d">+1 new</div></div>
-        <div class="kpi"><div class="ic" style="background:var(--grad-gold);color:#3a2a00"><i class="fa-solid fa-fire"></i></div><div class="lbl">Streak</div><div class="v">21 days</div><div class="d">Keep it up!</div></div>
-        <div class="kpi"><div class="ic" style="background:linear-gradient(135deg,#7a5cff,#c084fc)"><i class="fa-solid fa-chart-line"></i></div><div class="lbl">Readiness</div><div class="v">86%</div><div class="d">+12%</div></div>
-      </div>
-      <div class="panel-grid">
+
+      <!-- Overview Panel -->
+      <div class="dash-panel active" id="panel-overview">
+        <div class="k-grid">
+          <div class="kpi"><div class="ic" style="background:var(--grad-royal)"><i class="fa-solid fa-book-open"></i></div><div class="lbl">Courses</div><div class="v" id="dashCourseCount">7</div><div class="d">+2 this month</div></div>
+          <div class="kpi"><div class="ic" style="background:var(--grad-emerald)"><i class="fa-solid fa-award"></i></div><div class="lbl">Certificates</div><div class="v" id="dashCertCount">4</div><div class="d">+1 new</div></div>
+          <div class="kpi"><div class="ic" style="background:var(--grad-gold);color:#3a2a00"><i class="fa-solid fa-fire"></i></div><div class="lbl">Streak</div><div class="v">21 days</div><div class="d">Keep it up!</div></div>
+          <div class="kpi"><div class="ic" style="background:linear-gradient(135deg,#7a5cff,#c084fc)"><i class="fa-solid fa-chart-line"></i></div><div class="lbl">Readiness</div><div class="v">86%</div><div class="d">+12%</div></div>
+        </div>
+        <div class="panel-grid">
+          <div class="panel">
+            <h3>Learning progress</h3>
+            <div id="stuProgress"></div>
+          </div>
+          <div class="panel">
+            <h3>AI Recommendations</h3>
+            <div class="list-item"><span><i class="fa-solid fa-lightbulb" style="color:var(--gold)"></i> Apply to Product Designer @ Acme</span><span class="pill b">Match 92%</span></div>
+            <div class="list-item"><span><i class="fa-solid fa-lightbulb" style="color:var(--gold)"></i> Take "Advanced Figma"</span><span class="pill g">+15% skill</span></div>
+            <div class="list-item"><span><i class="fa-solid fa-lightbulb" style="color:var(--gold)"></i> Update your resume</span><span class="pill y">3 tips</span></div>
+          </div>
+        </div>
         <div class="panel">
-          <h3>Learning progress</h3>
-          <div id="stuProgress"></div>
-        </div>
-        <div class="panel">
-          <h3>AI Recommendations</h3>
-          <div class="list-item"><span><i class="fa-solid fa-lightbulb" style="color:var(--gold)"></i> Apply to Product Designer @ Acme</span><span class="pill b">Match 92%</span></div>
-          <div class="list-item"><span><i class="fa-solid fa-lightbulb" style="color:var(--gold)"></i> Take "Advanced Figma"</span><span class="pill g">+15% skill</span></div>
-          <div class="list-item"><span><i class="fa-solid fa-lightbulb" style="color:var(--gold)"></i> Update your resume</span><span class="pill y">3 tips</span></div>
+          <h3>Recent activity</h3>
+          <div id="recentActivity">
+            <div class="list-item"><span>✅ Completed "UX Foundations"</span><span class="pill g">Cert unlocked</span></div>
+            <div class="list-item"><span>📝 Applied to Frontend Engineer @ Nova</span><span class="pill b">Pending</span></div>
+            <div class="list-item"><span>🎯 Scored 92% on JS Fundamentals exam</span><span class="pill g">Passed</span></div>
+          </div>
         </div>
       </div>
-      <div class="panel">
-        <h3>Recent activity</h3>
-        <div class="list-item"><span>✅ Completed "UX Foundations"</span><span class="pill g">Cert unlocked</span></div>
-        <div class="list-item"><span>📝 Applied to Frontend Engineer @ Nova</span><span class="pill b">Pending</span></div>
-        <div class="list-item"><span>🎯 Scored 92% on JS Fundamentals exam</span><span class="pill g">Passed</span></div>
+
+      <!-- My Courses Panel -->
+      <div class="dash-panel" id="panel-mycourses">
+        <h2 style="margin-bottom:16px">My Courses</h2>
+        <div id="myCoursesList"><p style="color:var(--muted)">You haven't enrolled in any courses yet. <a href="#" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'});showLanding();return false;" style="color:var(--royal);font-weight:600">Browse courses</a></p></div>
+      </div>
+
+      <!-- Jobs Panel -->
+      <div class="dash-panel" id="panel-jobs">
+        <h2 style="margin-bottom:16px">Job Board</h2>
+        <div id="dashboardJobList"></div>
+      </div>
+
+      <!-- Applications Panel -->
+      <div class="dash-panel" id="panel-applications">
+        <h2 style="margin-bottom:16px">My Applications</h2>
+        <div id="applicationsList"><p style="color:var(--muted)">You haven't applied to any jobs yet.</p></div>
+      </div>
+
+      <!-- Certificates Panel -->
+      <div class="dash-panel" id="panel-certificates">
+        <h2 style="margin-bottom:16px">My Certificates</h2>
+        <div id="certificatesList"><p style="color:var(--muted)">Complete courses to earn certificates.</p></div>
+      </div>
+
+      <!-- Leaderboard Panel -->
+      <div class="dash-panel" id="panel-leaderboard">
+        <h2 style="margin-bottom:16px">Leaderboard</h2>
+        <div class="list-item"><span>🥇 Grace A.</span><span class="pill g">2,450 XP</span></div>
+        <div class="list-item"><span>🥈 James O.</span><span class="pill g">2,120 XP</span></div>
+        <div class="list-item"><span>🥉 Priya S.</span><span class="pill g">1,980 XP</span></div>
+        <div class="list-item"><span>4. Mike C.</span><span class="pill y">1,750 XP</span></div>
+        <div class="list-item"><span>5. Sarah K.</span><span class="pill y">1,620 XP</span></div>
+      </div>
+
+      <!-- AI Coach Panel -->
+      <div class="dash-panel" id="panel-aicoach">
+        <h2 style="margin-bottom:16px">AI Career Coach</h2>
+        <div class="ai-chat" style="background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px;backdrop-filter:none;color:var(--ink)">
+          <div class="msg ai" style="background:color-mix(in oklab,var(--royal) 10%,transparent);color:var(--ink)">👋 Hi! I'm your AI career coach. What role are you aiming for?</div>
+          <div class="chat-input">
+            <input placeholder="Ask anything..." style="background:var(--card);color:var(--ink);border-color:var(--line)" onkeypress="if(event.key==='Enter')aiDemo(this)"/>
+            <button class="btn btn-emerald" onclick="aiDemo(this.previousElementSibling)"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payments Panel -->
+      <div class="dash-panel" id="panel-payments">
+        <h2 style="margin-bottom:16px">Payments & Billing</h2>
+        <div class="list-item"><span>Current Plan</span><span class="pill g">Premium</span></div>
+        <div class="list-item"><span>Next Billing</span><span>May 15, 2025</span></div>
+        <div class="list-item"><span>Payment Method</span><span>•••• 4242</span></div>
+        <button class="btn btn-primary" style="margin-top:12px"><i class="fa-solid fa-credit-card"></i> Manage Subscription</button>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="dash-panel" id="panel-settings">
+        <h2 style="margin-bottom:16px">Settings</h2>
+        <div class="field"><label>Full Name</label><input type="text" value="Jane Doe" id="settingsName"></div>
+        <div class="field"><label>Email</label><input type="email" value="jane@example.com" id="settingsEmail"></div>
+        <button class="btn btn-primary" onclick="toast('info','Settings saved (demo)')"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
       </div>
     </main>
   </div>
 </div>
 
-<!-- EMPLOYER -->
+<!-- ===== EMPLOYER DASHBOARD ===== -->
 <div class="dash" id="dashEmployer">
   <div class="dash-wrap">
     <aside class="sidebar">
@@ -767,7 +901,7 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
   </div>
 </div>
 
-<!-- ADMIN -->
+<!-- ===== ADMIN DASHBOARD ===== -->
 <div class="dash" id="dashAdmin">
   <div class="dash-wrap">
     <aside class="sidebar">
@@ -817,53 +951,9 @@ footer{background:var(--navy);color:#c9d2ff;padding:70px 0 30px;margin-top:0}
   </div>
 </div>
 
-<!-- ===== AUTH MODAL ===== -->
-<div class="modal-back" id="authModal">
-  <div class="modal">
-    <button class="close" onclick="closeAuth()"><i class="fa-solid fa-xmark"></i></button>
-    <h2 id="authTitle">Welcome back</h2>
-    <p class="sub" id="authSub">Sign in to continue your journey.</p>
-    <div class="tabs">
-      <button id="tabLogin" class="on" onclick="switchAuth('login')">Sign In</button>
-      <button id="tabReg" onclick="switchAuth('register')">Register</button>
-    </div>
-    <form id="authForm" onsubmit="event.preventDefault();submitAuth()">
-      <div class="field" id="nameField" style="display:none">
-        <label>Full Name</label>
-        <input type="text" id="fName" placeholder="Jane Doe">
-      </div>
-      <div class="field" id="roleField" style="display:none">
-        <label>I am a</label>
-        <select id="fRole">
-          <option value="student">Student / Learner</option>
-          <option value="employer">Employer / Recruiter</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="fEmail" placeholder="you@email.com" required>
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="fPass" placeholder="••••••••" required minlength="6">
-      </div>
-      <div id="forgotLink" style="text-align:right;margin:-6px 0 12px">
-        <a href="#" onclick="forgotPass();return false;" style="font-size:12px;color:var(--royal);font-weight:600">Forgot password?</a>
-      </div>
-      <button class="btn btn-primary" type="submit" style="width:100%;justify-content:center" id="authSubmit">Sign In</button>
-    </form>
-    <div class="divider">or continue with</div>
-    <button class="google-btn" onclick="googleLogin()">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.9 6.1 29.8 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.9 6.1 29.8 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.7 0 10.8-2 14.7-5.4l-6.8-5.6c-2 1.4-4.6 2.3-7.9 2.3-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.6l6.8 5.6C41.7 36.5 44 30.9 44 24c0-1.3-.1-2.3-.4-3.5z"/></svg>
-      Continue with Google
-    </button>
-    <p class="tiny">By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
-  </div>
-</div>
-
 <script>
 /* =========================================================
-   SIDE HUSTLE 101 — App logic with FIREBASE INTEGRATION
+   SIDE HUSTLE 101 — App logic with FULL FIREBASE INTEGRATION
    ========================================================= */
 
 // ---- FIREBASE CONFIGURATION ----
@@ -884,8 +974,6 @@ const firebaseConfig = {
 
 };
 
-
-// ---- Firebase Admin Emails (only these can access admin panel) ----
 const ADMIN_EMAILS = ["admin@sidehustle101.com"];
 
 // ---- Firebase Initialization ----
@@ -897,8 +985,6 @@ try {
   db = firebase.firestore();
   storage = firebase.storage();
   console.log("🔥 Firebase initialized successfully!");
-  
-  // Enable offline persistence for Firestore
   db.enablePersistence({ synchronizeTabs: true })
     .catch(err => console.warn("⚠️ Firestore persistence error:", err));
 } catch (e) {
@@ -908,27 +994,20 @@ try {
 // ---- Global state ----
 let currentUser = null;
 let userRole = "student";
+let currentCourseId = null;
+let currentJobId = null;
+let enrolledCourses = []; // for local fallback
+let applications = []; // for local fallback
 
 // =========================================================
-// FIREBASE AUTH FUNCTIONS (from second code)
+// FIREBASE AUTH FUNCTIONS
 // =========================================================
 
-/**
- * Register a new user with email/password
- * Saves user profile to Firestore
- */
 async function registerUser(email, password, name, role) {
-  if (!auth) {
-    toast("error", "Firebase not initialized. Check your config.");
-    return null;
-  }
-  
+  if (!auth) { toast("error", "Firebase not configured."); return null; }
   try {
-    // Create user with email/password
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     const user = userCredential.user;
-    
-    // Save user profile to Firestore
     await db.collection("users").doc(user.uid).set({
       uid: user.uid,
       email: user.email,
@@ -943,7 +1022,6 @@ async function registerUser(email, password, name, role) {
       completedCourses: [],
       certificates: []
     });
-    
     toast("success", `Welcome ${name || "User"}! 🎉`);
     currentUser = user;
     userRole = role || "student";
@@ -952,32 +1030,19 @@ async function registerUser(email, password, name, role) {
     routeUser({ uid: user.uid, email: user.email, displayName: name, role: userRole });
     return user;
   } catch (error) {
-    console.error("Registration error:", error);
-    toast("error", error.message || "Registration failed. Please try again.");
+    toast("error", error.message || "Registration failed.");
     return null;
   }
 }
 
-/**
- * Sign in existing user with email/password
- */
 async function loginUser(email, password) {
-  if (!auth) {
-    toast("error", "Firebase not initialized. Check your config.");
-    return null;
-  }
-  
+  if (!auth) { toast("error", "Firebase not configured."); return null; }
   try {
     const userCredential = await auth.signInWithEmailAndPassword(email, password);
     const user = userCredential.user;
-    
-    // Fetch user role from Firestore
     const doc = await db.collection("users").doc(user.uid).get();
     let role = "student";
-    if (doc.exists) {
-      role = doc.data().role || "student";
-    }
-    
+    if (doc.exists) role = doc.data().role || "student";
     toast("success", `Welcome back, ${user.displayName || "User"}! 👋`);
     currentUser = user;
     userRole = role;
@@ -986,38 +1051,23 @@ async function loginUser(email, password) {
     routeUser({ uid: user.uid, email: user.email, displayName: user.displayName, role });
     return user;
   } catch (error) {
-    console.error("Login error:", error);
-    toast("error", error.message || "Login failed. Please check your credentials.");
+    toast("error", error.message || "Login failed.");
     return null;
   }
 }
 
-/**
- * Sign in with Google
- */
 async function googleLogin() {
-  if (!auth) {
-    toast("error", "Firebase not initialized. Check your config.");
-    return;
-  }
-  
+  if (!auth) { toast("error", "Firebase not configured."); return; }
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    provider.addScope("profile");
-    provider.addScope("email");
-    
     const result = await auth.signInWithPopup(provider);
     const user = result.user;
-    
-    // Check if user exists in Firestore, if not create profile
     const docRef = db.collection("users").doc(user.uid);
     const doc = await docRef.get();
-    
     let role = "student";
     if (doc.exists) {
       role = doc.data().role || "student";
     } else {
-      // Create new user profile
       await docRef.set({
         uid: user.uid,
         email: user.email,
@@ -1033,7 +1083,6 @@ async function googleLogin() {
         certificates: []
       });
     }
-    
     toast("success", `Welcome ${user.displayName || "User"}! 🎉`);
     currentUser = user;
     userRole = role;
@@ -1041,85 +1090,112 @@ async function googleLogin() {
     closeAuth();
     routeUser({ uid: user.uid, email: user.email, displayName: user.displayName, role });
   } catch (error) {
-    console.error("Google login error:", error);
     toast("error", error.message || "Google login failed.");
   }
 }
 
-/**
- * Sign out current user
- */
 async function logout() {
   if (auth) {
-    try {
-      await auth.signOut();
-    } catch (e) {
-      console.warn("Sign out error:", e);
-    }
+    try { await auth.signOut(); } catch (e) {}
   }
   currentUser = null;
   userRole = "student";
   localStorage.removeItem("sh101-user");
   updateUI();
-  toast("info", "You've been signed out.");
+  toast("info", "Signed out.");
   showLanding();
 }
 
-/**
- * Send password reset email
- */
 async function forgotPass() {
-  if (!auth) {
-    toast("error", "Firebase not initialized.");
-    return;
-  }
-  
-  const email = prompt("Enter your email to receive a password reset link:");
+  if (!auth) { toast("error", "Firebase not configured."); return; }
+  const email = prompt("Enter your email:");
   if (!email) return;
-  
   try {
     await auth.sendPasswordResetEmail(email);
-    toast("success", `Password reset link sent to ${email} 📧`);
+    toast("success", `Reset link sent to ${email} 📧`);
   } catch (error) {
-    console.error("Password reset error:", error);
-    toast("error", error.message || "Failed to send reset email.");
+    toast("error", error.message || "Failed.");
   }
 }
 
-/**
- * Update user profile in Firestore
- */
-async function updateUserProfile(data) {
-  if (!currentUser || !db) {
-    toast("error", "You must be logged in.");
-    return null;
-  }
+// =========================================================
+// FIRESTORE DATA FUNCTIONS
+// =========================================================
+
+async function enrollCourse(courseId) {
+  if (!currentUser) { toast("warn", "Please sign in first."); return; }
+  const course = COURSES.find(c => c.id === courseId);
+  if (!course) { toast("error", "Course not found."); return; }
   
-  try {
-    await db.collection("users").doc(currentUser.uid).update({
-      ...data,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    toast("success", "Profile updated! ✅");
-    return true;
-  } catch (error) {
-    console.error("Update profile error:", error);
-    toast("error", error.message || "Failed to update profile.");
-    return false;
+  if (db) {
+    try {
+      const userRef = db.collection("users").doc(currentUser.uid);
+      const doc = await userRef.get();
+      const data = doc.data();
+      let enrolled = data.enrolledCourses || [];
+      if (enrolled.includes(courseId)) {
+        toast("info", "Already enrolled in this course.");
+        return;
+      }
+      enrolled.push(courseId);
+      await userRef.update({ enrolledCourses: enrolled, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      toast("success", `Enrolled in "${course.t}"! 🎉`);
+      updateDashboardData();
+      document.getElementById("courseModal").classList.remove("on");
+    } catch (error) {
+      toast("error", error.message || "Enrollment failed.");
+    }
+  } else {
+    // Local fallback
+    let user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    if (!user.enrolledCourses) user.enrolledCourses = [];
+    if (user.enrolledCourses.includes(courseId)) {
+      toast("info", "Already enrolled.");
+      return;
+    }
+    user.enrolledCourses.push(courseId);
+    localStorage.setItem("sh101-user", JSON.stringify(user));
+    toast("success", `Enrolled in "${course.t}"! 🎉`);
+    updateDashboardData();
+    document.getElementById("courseModal").classList.remove("on");
   }
 }
 
-/**
- * Get user data from Firestore
- */
-async function getUserData(uid) {
-  if (!db) return null;
-  try {
-    const doc = await db.collection("users").doc(uid).get();
-    return doc.exists ? doc.data() : null;
-  } catch (error) {
-    console.error("Get user error:", error);
-    return null;
+async function applyJob(jobId) {
+  if (!currentUser) { toast("warn", "Please sign in first."); return; }
+  const job = JOBS.find(j => j.id === jobId);
+  if (!job) { toast("error", "Job not found."); return; }
+  
+  if (db) {
+    try {
+      const appRef = db.collection("applications").doc();
+      await appRef.set({
+        userId: currentUser.uid,
+        jobId: jobId,
+        jobTitle: job.t,
+        company: job.co,
+        status: "Pending",
+        appliedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast("success", `Applied to "${job.t}"! 📨`);
+      updateDashboardData();
+      document.getElementById("jobModal").classList.remove("on");
+    } catch (error) {
+      toast("error", error.message || "Application failed.");
+    }
+  } else {
+    // Local fallback
+    let user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    if (!user.applications) user.applications = [];
+    if (user.applications.find(a => a.jobId === jobId)) {
+      toast("info", "Already applied.");
+      return;
+    }
+    user.applications.push({ jobId: jobId, jobTitle: job.t, company: job.co, status: "Pending", appliedAt: new Date().toISOString() });
+    localStorage.setItem("sh101-user", JSON.stringify(user));
+    toast("success", `Applied to "${job.t}"! 📨`);
+    updateDashboardData();
+    document.getElementById("jobModal").classList.remove("on");
   }
 }
 
@@ -1127,13 +1203,9 @@ async function getUserData(uid) {
 // UI UPDATE FUNCTIONS
 // =========================================================
 
-/**
- * Update UI based on auth state
- */
 function updateUI() {
   const authBtn = document.getElementById("authBtn");
   const userDisplay = document.getElementById("userDisplay");
-  
   if (currentUser) {
     const name = currentUser.displayName || currentUser.email?.split("@")[0] || "User";
     authBtn.textContent = "Sign Out";
@@ -1149,18 +1221,10 @@ function updateUI() {
   }
 }
 
-/**
- * Route user to appropriate dashboard
- */
 function routeUser(user) {
   hideAll();
   let role = user.role || "student";
-  
-  // Admin override
-  if (ADMIN_EMAILS.includes(user.email)) {
-    role = "admin";
-  }
-  
+  if (ADMIN_EMAILS.includes(user.email)) role = "admin";
   if (role === "admin") {
     document.getElementById("dashAdmin").classList.add("on");
   } else if (role === "employer") {
@@ -1168,7 +1232,8 @@ function routeUser(user) {
   } else {
     document.getElementById("stuName").textContent = user.displayName?.split(" ")[0] || "Learner";
     document.getElementById("dashStudent").classList.add("on");
-    renderStudentProgress();
+    switchStudentPanel("overview");
+    updateDashboardData();
   }
   window.scrollTo(0, 0);
 }
@@ -1184,8 +1249,275 @@ function showLanding() {
   window.scrollTo(0, 0);
 }
 
+// ---- Student Dashboard Panel Switching ----
+function switchStudentPanel(panel) {
+  document.querySelectorAll("#studentSidebar .side-link").forEach(el => el.classList.remove("on"));
+  const link = document.querySelector(`#studentSidebar .side-link[data-panel="${panel}"]`);
+  if (link) link.classList.add("on");
+  
+  document.querySelectorAll(".dash-panel").forEach(p => p.classList.remove("active"));
+  const target = document.getElementById(`panel-${panel}`);
+  if (target) target.classList.add("active");
+  
+  // Update subheading
+  const subMap = {
+    overview: "Here's your career progress this week.",
+    mycourses: "Track your learning journey.",
+    jobs: "Discover new opportunities.",
+    applications: "Review your job applications.",
+    certificates: "Your achievements.",
+    leaderboard: "See where you rank.",
+    aicoach: "Get personalized career advice.",
+    payments: "Manage your subscriptions.",
+    settings: "Update your profile."
+  };
+  document.getElementById("stuSub").textContent = subMap[panel] || "";
+  
+  // Refresh data for certain panels
+  if (panel === "mycourses") renderMyCourses();
+  if (panel === "jobs") renderDashboardJobs();
+  if (panel === "applications") renderApplications();
+  if (panel === "certificates") renderCertificates();
+}
+
+// ---- Dashboard Data Rendering ----
+async function updateDashboardData() {
+  // Update counts from Firestore or local
+  let enrolled = [];
+  let certs = [];
+  if (db && currentUser) {
+    try {
+      const doc = await db.collection("users").doc(currentUser.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        enrolled = data.enrolledCourses || [];
+        certs = data.certificates || [];
+      }
+    } catch (e) {}
+  } else {
+    const user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    enrolled = user.enrolledCourses || [];
+    certs = user.certificates || [];
+  }
+  document.getElementById("dashCourseCount").textContent = enrolled.length || 0;
+  document.getElementById("dashCertCount").textContent = certs.length || 0;
+  
+  // Render progress
+  renderStudentProgress();
+}
+
+function renderStudentProgress() {
+  const container = document.getElementById("stuProgress");
+  // For demo, show some static progress bars
+  const items = [
+    {t:"UX Foundations",p:100,c:"var(--grad-emerald)"},
+    {t:"Advanced Figma",p:72,c:"var(--grad-royal)"},
+    {t:"JavaScript Deep Dive",p:45,c:"var(--grad-gold)"},
+    {t:"AI for Designers",p:20,c:"linear-gradient(135deg,#7a5cff,#c084fc)"}
+  ];
+  container.innerHTML = items.map(x => `
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px">
+        <span style="font-weight:600">${x.t}</span><span style="color:var(--muted)">${x.p}%</span>
+      </div>
+      <div style="height:8px;background:var(--bg);border-radius:99px;overflow:hidden">
+        <div style="height:100%;width:${x.p}%;background:${x.c};border-radius:99px;transition:width 1s"></div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderMyCourses() {
+  const container = document.getElementById("myCoursesList");
+  let enrolled = [];
+  if (db && currentUser) {
+    db.collection("users").doc(currentUser.uid).get().then(doc => {
+      if (doc.exists) {
+        enrolled = doc.data().enrolledCourses || [];
+        renderCourseList();
+      }
+    }).catch(() => renderCourseList());
+  } else {
+    const user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    enrolled = user.enrolledCourses || [];
+    renderCourseList();
+  }
+  
+  function renderCourseList() {
+    if (!enrolled.length) {
+      container.innerHTML = `<p style="color:var(--muted)">You haven't enrolled in any courses yet. <a href="#" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'});showLanding();return false;" style="color:var(--royal);font-weight:600">Browse courses</a></p>`;
+      return;
+    }
+    const courses = COURSES.filter(c => enrolled.includes(c.id));
+    container.innerHTML = courses.map(c => `
+      <div class="list-item">
+        <span><b>${c.t}</b> — ${c.i}</span>
+        <span class="pill g">Enrolled</span>
+      </div>
+    `).join("");
+  }
+}
+
+function renderDashboardJobs() {
+  const container = document.getElementById("dashboardJobList");
+  container.innerHTML = JOBS.map(j => `
+    <div class="job" style="cursor:pointer;margin-bottom:12px" onclick="openJobDetail('${j.id}')">
+      <div class="logo" style="background:${j.g}"><i class="fa-solid ${j.icon}"></i></div>
+      <div style="flex:1">
+        <h3>${j.t}</h3>
+        <div class="co">${j.co} • ${j.loc}</div>
+        <div class="bottom"><span class="salary">${j.salary}</span>
+          <button class="btn btn-emerald" style="padding:6px 14px;font-size:12px" onclick="event.stopPropagation();openJobDetail('${j.id}')">Apply</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderApplications() {
+  const container = document.getElementById("applicationsList");
+  let apps = [];
+  if (db && currentUser) {
+    db.collection("applications").where("userId", "==", currentUser.uid).get().then(snapshot => {
+      apps = snapshot.docs.map(d => d.data());
+      renderAppList();
+    }).catch(() => renderAppList());
+  } else {
+    const user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    apps = user.applications || [];
+    renderAppList();
+  }
+  
+  function renderAppList() {
+    if (!apps.length) {
+      container.innerHTML = `<p style="color:var(--muted)">You haven't applied to any jobs yet.</p>`;
+      return;
+    }
+    container.innerHTML = apps.map(a => `
+      <div class="list-item">
+        <span><b>${a.jobTitle}</b> at ${a.company}</span>
+        <span class="pill b">${a.status || "Pending"}</span>
+      </div>
+    `).join("");
+  }
+}
+
+function renderCertificates() {
+  const container = document.getElementById("certificatesList");
+  let certs = [];
+  if (db && currentUser) {
+    db.collection("users").doc(currentUser.uid).get().then(doc => {
+      if (doc.exists) certs = doc.data().certificates || [];
+      renderCertList();
+    }).catch(() => renderCertList());
+  } else {
+    const user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    certs = user.certificates || [];
+    renderCertList();
+  }
+  
+  function renderCertList() {
+    if (!certs.length) {
+      container.innerHTML = `<p style="color:var(--muted)">Complete courses to earn certificates.</p>`;
+      return;
+    }
+    container.innerHTML = certs.map(c => `
+      <div class="list-item">
+        <span><i class="fa-solid fa-award" style="color:var(--gold)"></i> ${c}</span>
+        <span class="pill g">Verified</span>
+      </div>
+    `).join("");
+  }
+}
+
 // =========================================================
-// AUTH MODAL FUNCTIONS (Firebase version)
+// COURSE & JOB DETAIL MODALS
+// =========================================================
+
+function openCourseDetail(courseId) {
+  const course = COURSES.find(c => c.id === courseId);
+  if (!course) return;
+  currentCourseId = courseId;
+  document.getElementById("courseModalTitle").textContent = course.t;
+  document.getElementById("courseModalInstructor").textContent = `by ${course.i}`;
+  document.getElementById("courseModalDur").textContent = course.dur;
+  document.getElementById("courseModalRate").textContent = course.rate;
+  document.getElementById("courseModalPrice").textContent = course.price;
+  document.getElementById("courseModalLevel").textContent = course.lvl;
+  document.getElementById("courseModal").classList.add("on");
+  // Check if already enrolled
+  let enrolled = [];
+  if (db && currentUser) {
+    db.collection("users").doc(currentUser.uid).get().then(doc => {
+      if (doc.exists) enrolled = doc.data().enrolledCourses || [];
+      updateEnrollBtn();
+    });
+  } else {
+    const user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    enrolled = user.enrolledCourses || [];
+    updateEnrollBtn();
+  }
+  function updateEnrollBtn() {
+    const btn = document.getElementById("courseEnrollBtn");
+    if (enrolled.includes(courseId)) {
+      btn.textContent = "✅ Enrolled";
+      btn.className = "btn btn-emerald";
+      btn.disabled = true;
+      btn.style.opacity = "0.7";
+      btn.onclick = null;
+    } else {
+      btn.textContent = "🎓 Enroll Now";
+      btn.className = "btn btn-primary";
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.onclick = () => enrollCourse(courseId);
+    }
+  }
+}
+
+function openJobDetail(jobId) {
+  const job = JOBS.find(j => j.id === jobId);
+  if (!job) return;
+  currentJobId = jobId;
+  document.getElementById("jobModalTitle").textContent = job.t;
+  document.getElementById("jobModalCompany").textContent = job.co;
+  document.getElementById("jobModalLoc").textContent = job.loc;
+  document.getElementById("jobModalSalary").textContent = job.salary;
+  document.getElementById("jobModalType").textContent = job.type;
+  document.getElementById("jobModalTags").textContent = job.tags.join(", ");
+  document.getElementById("jobModal").classList.add("on");
+  // Check if already applied
+  let applied = false;
+  if (db && currentUser) {
+    db.collection("applications").where("userId", "==", currentUser.uid).where("jobId", "==", jobId).get().then(snapshot => {
+      applied = !snapshot.empty;
+      updateApplyBtn();
+    });
+  } else {
+    const user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    if (user.applications) applied = user.applications.some(a => a.jobId === jobId);
+    updateApplyBtn();
+  }
+  function updateApplyBtn() {
+    const btn = document.getElementById("jobApplyBtn");
+    if (applied) {
+      btn.textContent = "✅ Applied";
+      btn.className = "btn btn-emerald";
+      btn.disabled = true;
+      btn.style.opacity = "0.7";
+      btn.onclick = null;
+    } else {
+      btn.textContent = "📩 Apply Now";
+      btn.className = "btn btn-emerald";
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.onclick = () => applyJob(jobId);
+    }
+  }
+}
+
+// =========================================================
+// AUTH MODAL FUNCTIONS
 // =========================================================
 
 let authMode = "login";
@@ -1217,12 +1549,7 @@ async function submitAuth() {
   const password = document.getElementById("fPass").value;
   const name = document.getElementById("fName").value.trim() || email.split("@")[0];
   const role = document.getElementById("fRole").value || "student";
-  
-  if (!email || !password) {
-    toast("error", "Enter email and password");
-    return;
-  }
-  
+  if (!email || !password) { toast("error", "Enter email and password"); return; }
   if (authMode === "login") {
     await loginUser(email, password);
   } else {
@@ -1231,7 +1558,7 @@ async function submitAuth() {
 }
 
 // =========================================================
-// DEMO DATA & RENDERERS (unchanged from first code)
+// STATIC DATA (with IDs)
 // =========================================================
 
 const FEATURES = [
@@ -1244,21 +1571,21 @@ const FEATURES = [
 ];
 
 const COURSES = [
-  {t:"Full-Stack Web Development",i:"Sarah Kim",lvl:"Beginner",price:"$49",dur:"32h",rate:4.9,icon:"fa-code",g:"var(--grad-royal)"},
-  {t:"UI/UX Design Masterclass",i:"David Park",lvl:"All Levels",price:"$59",dur:"24h",rate:4.8,icon:"fa-pen-nib",g:"linear-gradient(135deg,#7a5cff,#c084fc)"},
-  {t:"Data Science with Python",i:"Amara Okafor",lvl:"Intermediate",price:"$69",dur:"40h",rate:4.9,icon:"fa-chart-line",g:"var(--grad-emerald)"},
-  {t:"Digital Marketing Pro",i:"Mike Chen",lvl:"Beginner",price:"$39",dur:"18h",rate:4.7,icon:"fa-bullhorn",g:"linear-gradient(135deg,#ef4444,#f97316)"},
-  {t:"Product Management",i:"Lisa Wang",lvl:"Advanced",price:"$79",dur:"28h",rate:4.9,icon:"fa-cube",g:"var(--grad-gold)"},
-  {t:"AI & Machine Learning",i:"Prof. Ahmed",lvl:"Advanced",price:"$89",dur:"36h",rate:5.0,icon:"fa-brain",g:"linear-gradient(135deg,#0ea5e9,#22d3ee)"}
+  {id:"c1", t:"Full-Stack Web Development", i:"Sarah Kim", lvl:"Beginner", price:"$49", dur:"32h", rate:4.9, icon:"fa-code", g:"var(--grad-royal)"},
+  {id:"c2", t:"UI/UX Design Masterclass", i:"David Park", lvl:"All Levels", price:"$59", dur:"24h", rate:4.8, icon:"fa-pen-nib", g:"linear-gradient(135deg,#7a5cff,#c084fc)"},
+  {id:"c3", t:"Data Science with Python", i:"Amara Okafor", lvl:"Intermediate", price:"$69", dur:"40h", rate:4.9, icon:"fa-chart-line", g:"var(--grad-emerald)"},
+  {id:"c4", t:"Digital Marketing Pro", i:"Mike Chen", lvl:"Beginner", price:"$39", dur:"18h", rate:4.7, icon:"fa-bullhorn", g:"linear-gradient(135deg,#ef4444,#f97316)"},
+  {id:"c5", t:"Product Management", i:"Lisa Wang", lvl:"Advanced", price:"$79", dur:"28h", rate:4.9, icon:"fa-cube", g:"var(--grad-gold)"},
+  {id:"c6", t:"AI & Machine Learning", i:"Prof. Ahmed", lvl:"Advanced", price:"$89", dur:"36h", rate:5.0, icon:"fa-brain", g:"linear-gradient(135deg,#0ea5e9,#22d3ee)"}
 ];
 
 const JOBS = [
-  {t:"Senior Product Designer",co:"Nova Labs",loc:"Remote",salary:"$95k–$130k",type:"Full-time",tags:["Remote","Figma","Design"],icon:"fa-pen-nib",g:"var(--grad-royal)"},
-  {t:"Frontend Engineer",co:"Acme Corp",loc:"Berlin, DE",salary:"$70k–$110k",type:"Hybrid",tags:["React","TypeScript"],icon:"fa-code",g:"var(--grad-emerald)"},
-  {t:"Data Analyst",co:"Finlytics",loc:"Lagos, NG",salary:"$40k–$65k",type:"Full-time",tags:["SQL","Python"],icon:"fa-chart-column",g:"var(--grad-gold)"},
-  {t:"Marketing Manager",co:"Bloom Inc",loc:"Remote",salary:"$60k–$85k",type:"Contract",tags:["SEO","Growth"],icon:"fa-bullhorn",g:"linear-gradient(135deg,#7a5cff,#c084fc)"},
-  {t:"Backend Engineer",co:"Vertex",loc:"London, UK",salary:"$85k–$120k",type:"Full-time",tags:["Node","AWS"],icon:"fa-server",g:"linear-gradient(135deg,#ef4444,#f97316)"},
-  {t:"Content Strategist",co:"Studio Nine",loc:"Remote",salary:"$50k–$75k",type:"Freelance",tags:["Content","SEO"],icon:"fa-feather",g:"linear-gradient(135deg,#0ea5e9,#22d3ee)"}
+  {id:"j1", t:"Senior Product Designer", co:"Nova Labs", loc:"Remote", salary:"$95k–$130k", type:"Full-time", tags:["Remote","Figma","Design"], icon:"fa-pen-nib", g:"var(--grad-royal)"},
+  {id:"j2", t:"Frontend Engineer", co:"Acme Corp", loc:"Berlin, DE", salary:"$70k–$110k", type:"Hybrid", tags:["React","TypeScript"], icon:"fa-code", g:"var(--grad-emerald)"},
+  {id:"j3", t:"Data Analyst", co:"Finlytics", loc:"Lagos, NG", salary:"$40k–$65k", type:"Full-time", tags:["SQL","Python"], icon:"fa-chart-column", g:"var(--grad-gold)"},
+  {id:"j4", t:"Marketing Manager", co:"Bloom Inc", loc:"Remote", salary:"$60k–$85k", type:"Contract", tags:["SEO","Growth"], icon:"fa-bullhorn", g:"linear-gradient(135deg,#7a5cff,#c084fc)"},
+  {id:"j5", t:"Backend Engineer", co:"Vertex", loc:"London, UK", salary:"$85k–$120k", type:"Full-time", tags:["Node","AWS"], icon:"fa-server", g:"linear-gradient(135deg,#ef4444,#f97316)"},
+  {id:"j6", t:"Content Strategist", co:"Studio Nine", loc:"Remote", salary:"$50k–$75k", type:"Freelance", tags:["Content","SEO"], icon:"fa-feather", g:"linear-gradient(135deg,#0ea5e9,#22d3ee)"}
 ];
 
 const TESTIS = [
@@ -1275,6 +1602,10 @@ const FAQS = [
   {q:"What payment methods do you support?",a:"We support Paystack, Flutterwave, and Stripe — plus coupon codes and subscriptions."}
 ];
 
+// =========================================================
+// RENDER FUNCTIONS
+// =========================================================
+
 const $ = s => document.querySelector(s);
 const el = (tag,cls,html) => { const e=document.createElement(tag); if(cls)e.className=cls; if(html!==undefined)e.innerHTML=html; return e; };
 
@@ -1288,8 +1619,9 @@ function renderFeatures(){
 }
 
 function renderCourses(){
-  document.getElementById("courseGrid").innerHTML = COURSES.map(c=>`
-    <div class="course reveal">
+  const g = document.getElementById("courseGrid");
+  g.innerHTML = COURSES.map(c=>`
+    <div class="course reveal" onclick="openCourseDetail('${c.id}')">
       <div class="thumb" style="background:${c.g}">
         <span class="lvl">${c.lvl}</span><span class="price">${c.price}</span>
         <i class="fa-solid ${c.icon}"></i>
@@ -1306,15 +1638,16 @@ function renderCourses(){
 }
 
 function renderJobs(){
-  document.getElementById("jobGrid").innerHTML = JOBS.map((j,i)=>`
-    <div class="job reveal">
+  const g = document.getElementById("jobGrid");
+  g.innerHTML = JOBS.map(j=>`
+    <div class="job reveal" onclick="openJobDetail('${j.id}')">
       <div class="logo" style="background:${j.g}"><i class="fa-solid ${j.icon}"></i></div>
       <div style="flex:1">
         <h3>${j.t}</h3>
         <div class="co"><i class="fa-solid fa-building"></i> ${j.co} • <i class="fa-solid fa-location-dot"></i> ${j.loc}</div>
         <div class="tags">${j.tags.map(t=>`<span>${t}</span>`).join("")}<span>${j.type}</span></div>
         <div class="bottom"><span class="salary">${j.salary}</span>
-          <span class="save" onclick="this.classList.toggle('on');toast('info','Job saved!')"><i class="fa-solid fa-bookmark"></i></span>
+          <span class="save" onclick="event.stopPropagation();this.classList.toggle('on');toast('info','Job saved!')"><i class="fa-solid fa-bookmark"></i></span>
         </div>
       </div>
     </div>`).join("");
@@ -1332,7 +1665,8 @@ function renderTesti(){
 }
 
 function renderFAQ(){
-  document.getElementById("faqList").innerHTML = FAQS.map(f=>`
+  const g = document.getElementById("faqList");
+  g.innerHTML = FAQS.map(f=>`
     <div class="faq-item">
       <button class="faq-q">${f.q}<i class="fa-solid fa-chevron-down"></i></button>
       <div class="faq-a"><p>${f.a}</p></div>
@@ -1344,24 +1678,6 @@ function renderFAQ(){
       if(!open){item.classList.add("open");item.querySelector(".faq-a").style.maxHeight=item.querySelector(".faq-a").scrollHeight+"px";}
     };
   });
-}
-
-function renderStudentProgress(){
-  const items = [
-    {t:"UX Foundations",p:100,c:"var(--grad-emerald)"},
-    {t:"Advanced Figma",p:72,c:"var(--grad-royal)"},
-    {t:"JavaScript Deep Dive",p:45,c:"var(--grad-gold)"},
-    {t:"AI for Designers",p:20,c:"linear-gradient(135deg,#7a5cff,#c084fc)"}
-  ];
-  document.getElementById("stuProgress").innerHTML = items.map(x=>`
-    <div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px">
-        <span style="font-weight:600">${x.t}</span><span style="color:var(--muted)">${x.p}%</span>
-      </div>
-      <div style="height:8px;background:var(--bg);border-radius:99px;overflow:hidden">
-        <div style="height:100%;width:${x.p}%;background:${x.c};border-radius:99px;transition:width 1s"></div>
-      </div>
-    </div>`).join("");
 }
 
 function animateCounters(){
@@ -1439,30 +1755,20 @@ function aiDemo(input){
 function scrollTo2(id){ document.getElementById(id)?.scrollIntoView({behavior:"smooth"}); }
 
 // =========================================================
-// FIREBASE AUTH STATE LISTENER
+// AUTH STATE LISTENER
 // =========================================================
 
 function initAuthListener() {
   if (!auth) return;
-  
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       currentUser = user;
-      // Fetch role from Firestore
       try {
         const doc = await db.collection("users").doc(user.uid).get();
-        if (doc.exists) {
-          userRole = doc.data().role || "student";
-        } else {
-          userRole = "student";
-        }
-      } catch (e) {
-        userRole = "student";
-      }
-      
+        if (doc.exists) userRole = doc.data().role || "student";
+        else userRole = "student";
+      } catch (e) { userRole = "student"; }
       updateUI();
-      
-      // Check if we're on the landing page and should route
       if (document.getElementById("app").style.display !== "none") {
         routeUser({ uid: user.uid, email: user.email, displayName: user.displayName, role: userRole });
       }
@@ -1470,13 +1776,98 @@ function initAuthListener() {
       currentUser = null;
       userRole = "student";
       updateUI();
-      // Don't auto-route to landing if already on dashboard
       const anyDashOpen = document.querySelector(".dash.on");
-      if (anyDashOpen) {
-        showLanding();
-      }
+      if (anyDashOpen) showLanding();
     }
   });
+}
+
+// =========================================================
+// FALLBACK LOCAL MODE
+// =========================================================
+
+// Override functions if Firebase not available
+if (!auth) {
+  console.log("ℹ️ Running in local mode.");
+  // Override enrollCourse, applyJob, etc. to use localStorage
+  const origEnroll = enrollCourse;
+  enrollCourse = function(courseId) {
+    if (!currentUser) { toast("warn", "Please sign in first."); return; }
+    const course = COURSES.find(c => c.id === courseId);
+    if (!course) { toast("error", "Course not found."); return; }
+    let user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    if (!user.enrolledCourses) user.enrolledCourses = [];
+    if (user.enrolledCourses.includes(courseId)) { toast("info", "Already enrolled."); return; }
+    user.enrolledCourses.push(courseId);
+    localStorage.setItem("sh101-user", JSON.stringify(user));
+    toast("success", `Enrolled in "${course.t}"! 🎉`);
+    updateDashboardData();
+    document.getElementById("courseModal").classList.remove("on");
+  };
+  
+  const origApply = applyJob;
+  applyJob = function(jobId) {
+    if (!currentUser) { toast("warn", "Please sign in first."); return; }
+    const job = JOBS.find(j => j.id === jobId);
+    if (!job) { toast("error", "Job not found."); return; }
+    let user = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    if (!user.applications) user.applications = [];
+    if (user.applications.find(a => a.jobId === jobId)) { toast("info", "Already applied."); return; }
+    user.applications.push({ jobId: jobId, jobTitle: job.t, company: job.co, status: "Pending", appliedAt: new Date().toISOString() });
+    localStorage.setItem("sh101-user", JSON.stringify(user));
+    toast("success", `Applied to "${job.t}"! 📨`);
+    updateDashboardData();
+    document.getElementById("jobModal").classList.remove("on");
+  };
+  
+  // Override auth functions to use localStorage
+  const origSubmit = submitAuth;
+  submitAuth = function() {
+    const email = document.getElementById("fEmail").value.trim().toLowerCase();
+    const pass = document.getElementById("fPass").value;
+    const name = document.getElementById("fName").value.trim() || email.split("@")[0];
+    const role = document.getElementById("fRole").value || "student";
+    if (!email || !pass) { toast("error","Enter email and password"); return; }
+    let finalRole = role;
+    if (ADMIN_EMAILS.includes(email)) finalRole = "admin";
+    const user = { email, name, role: finalRole, enrolledCourses: [], applications: [], certificates: [] };
+    // Merge with existing if any
+    const existing = JSON.parse(localStorage.getItem("sh101-user") || "{}");
+    Object.assign(user, existing);
+    localStorage.setItem("sh101-user", JSON.stringify(user));
+    closeAuth();
+    toast("success", `${authMode==="login"?"Welcome back":"Account created"}, ${name}!`);
+    currentUser = user;
+    userRole = finalRole;
+    updateUI();
+    setTimeout(() => routeUser(user), 400);
+  };
+  
+  googleLogin = function() {
+    const email = "demo.user@gmail.com";
+    const user = { email, name:"Demo User", role: ADMIN_EMAILS.includes(email)?"admin":"student", enrolledCourses: [], applications: [], certificates: [] };
+    localStorage.setItem("sh101-user", JSON.stringify(user));
+    closeAuth();
+    toast("success", "Signed in with Google");
+    currentUser = user;
+    userRole = user.role;
+    updateUI();
+    setTimeout(() => routeUser(user), 400);
+  };
+  
+  forgotPass = function() {
+    const email = prompt("Enter your email to receive a password reset link:");
+    if (email) toast("info", `Reset link sent to ${email} (demo)`);
+  };
+  
+  logout = function() {
+    localStorage.removeItem("sh101-user");
+    currentUser = null;
+    userRole = "student";
+    updateUI();
+    toast("info", "Signed out (local mode)");
+    showLanding();
+  };
 }
 
 // =========================================================
@@ -1485,8 +1876,6 @@ function initAuthListener() {
 
 window.addEventListener("load", () => {
   document.getElementById("year").textContent = new Date().getFullYear();
-  
-  // Render all static content
   renderFeatures();
   renderCourses();
   renderJobs();
@@ -1495,7 +1884,6 @@ window.addEventListener("load", () => {
   initReveal();
   runLoader();
   
-  // Initialize theme
   const savedTheme = localStorage.getItem("sh101-theme");
   if (savedTheme === "dark") {
     document.documentElement.setAttribute("data-theme", "dark");
@@ -1503,108 +1891,40 @@ window.addEventListener("load", () => {
     if (icon) icon.className = "fa-solid fa-sun";
   }
   
-  // Check for saved user session (local fallback)
+  // Restore session
   const saved = localStorage.getItem("sh101-user");
   if (saved) {
     try {
       const u = JSON.parse(saved);
-      // Only use if Firebase auth isn't already handling it
       if (!currentUser) {
+        currentUser = u;
+        userRole = u.role || "student";
+        updateUI();
         setTimeout(() => routeUser(u), 1400);
       }
     } catch (e) {}
   }
   
-  // Initialize Firebase auth listener
   initAuthListener();
   
-  // If Firebase is not available, use localStorage fallback
   if (!auth) {
     console.log("ℹ️ Running in local mode (Firebase not configured)");
     if (saved) {
       try {
         const u = JSON.parse(saved);
-        setTimeout(() => routeUser(u), 1400);
+        if (!currentUser) {
+          currentUser = u;
+          userRole = u.role || "student";
+          updateUI();
+          setTimeout(() => routeUser(u), 1400);
+        }
       } catch (e) {}
     }
   }
+  
+  console.log("🚀 Side Hustle 101 loaded successfully!");
+  console.log("📡 Firebase status:", auth ? "Connected ✅" : "Local mode only ⚠️");
 });
-
-// ---- Fallback functions for local mode (from first code) ----
-// These work when Firebase is not available
-
-function submitAuthLocal() {
-  const email = document.getElementById("fEmail").value.trim().toLowerCase();
-  const pass = document.getElementById("fPass").value;
-  const name = document.getElementById("fName").value.trim() || email.split("@")[0];
-  const role = document.getElementById("fRole").value || "student";
-  if (!email || !pass) { toast("error","Enter email and password"); return; }
-  let finalRole = role;
-  if (ADMIN_EMAILS.includes(email)) finalRole = "admin";
-  const user = { email, name, role: finalRole };
-  localStorage.setItem("sh101-user", JSON.stringify(user));
-  closeAuth();
-  toast("success", `${authMode==="login"?"Welcome back":"Account created"}, ${name}!`);
-  setTimeout(() => routeUser(user), 400);
-}
-
-function googleLoginLocal() {
-  const email = "demo.user@gmail.com";
-  const user = { email, name:"Demo User", role: ADMIN_EMAILS.includes(email) ? "admin" : "student" };
-  localStorage.setItem("sh101-user", JSON.stringify(user));
-  closeAuth();
-  toast("success", "Signed in with Google");
-  setTimeout(() => routeUser(user), 400);
-}
-
-// Override submitAuth to use local if Firebase unavailable
-const originalSubmitAuth = submitAuth;
-submitAuth = async function() {
-  if (auth) {
-    await originalSubmitAuth();
-  } else {
-    submitAuthLocal();
-  }
-};
-
-// Override googleLogin to use local if Firebase unavailable
-const originalGoogleLogin = googleLogin;
-googleLogin = function() {
-  if (auth) {
-    originalGoogleLogin();
-  } else {
-    googleLoginLocal();
-  }
-};
-
-// Override forgotPass to use local if Firebase unavailable
-const originalForgotPass = forgotPass;
-forgotPass = function() {
-  if (auth) {
-    originalForgotPass();
-  } else {
-    const email = prompt("Enter your email to receive a password reset link:");
-    if (email) toast("info", `Reset link sent to ${email} (demo)`);
-  }
-};
-
-// Override logout
-const originalLogout = logout;
-logout = function() {
-  if (auth) {
-    originalLogout();
-  } else {
-    localStorage.removeItem("sh101-user");
-    currentUser = null;
-    userRole = "student";
-    updateUI();
-    toast("info", "Signed out (local mode)");
-    showLanding();
-  }
-};
-
-console.log("🚀 Side Hustle 101 loaded successfully!");
-console.log("📡 Firebase status:", auth ? "Connected ✅" : "Local mode only ⚠️");
 </script>
 </body>
 </html>
