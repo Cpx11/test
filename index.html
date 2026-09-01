@@ -1992,52 +1992,67 @@ function showStructureInfo(id) {
 // ======================== THREE.JS EXPLORER SETUP ========================
 function buildFigure() {
   const scene = explorer.scene;
+  
+  // Clear any existing figure
+  if (explorer.figure) {
+    scene.remove(explorer.figure);
+  }
+  
   const figure = new THREE.Group();
   scene.add(figure);
   
   const structures = getStructuresForSpecies(explorer.currentSpecies);
   const offset = SPECIES_DATA[explorer.currentSpecies]?.offset || [0, 0, 0];
   
+  // Clear and rebuild system groups
   Object.keys(SYSTEMS).forEach(sysId => {
+    if (explorer.groupsBySystem[sysId]) {
+      figure.remove(explorer.groupsBySystem[sysId]);
+    }
     explorer.groupsBySystem[sysId] = new THREE.Group();
     figure.add(explorer.groupsBySystem[sysId]);
   });
   
-  // Skin mesh
+  // --- SKIN MESH ---
   const skinMat = new THREE.MeshPhongMaterial({
     color: 0xffe0c8,
     transparent: true,
-    opacity: 0.12,
+    opacity: 0.15,
     side: THREE.DoubleSide,
-    shininess: 10
+    shininess: 10,
+    depthWrite: false
   });
   const skin = new THREE.Group();
   
-  // Build body based on species
+  // Human body
   if (explorer.currentSpecies === 'human') {
-    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.75, 4, 10), skinMat);
-    torso.position.set(0, 1.18, 0);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.30, 0.7, 12), skinMat);
+    torso.position.set(0, 1.15, 0);
     skin.add(torso);
+    
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 16), skinMat);
     head.position.set(0, 1.72, 0);
     skin.add(head);
+    
     [[-1, 'left'], [1, 'right']].forEach(([sgn]) => {
-      const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.62, 4, 8), skinMat);
-      arm.position.set(sgn * 0.42, 1.18, 0);
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.55, 8), skinMat);
+      arm.position.set(sgn * 0.40, 1.15, 0);
       skin.add(arm);
-      const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.85, 4, 8), skinMat);
-      leg.position.set(sgn * 0.15, 0.42, 0);
+      
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.08, 0.65, 8), skinMat);
+      leg.position.set(sgn * 0.15, 0.45, 0);
       skin.add(leg);
     });
   } else if (explorer.currentSpecies === 'dog') {
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.25, 0.4, 4, 8), skinMat);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.20, 0.5, 8), skinMat);
     body.position.set(0, 0.6, 0);
+    body.rotation.z = 0.1;
     skin.add(body);
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), skinMat);
     head.position.set(0, 0.9, 0.35);
     skin.add(head);
   } else if (explorer.currentSpecies === 'shark') {
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.8, 8), skinMat);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 0.8, 8), skinMat);
     body.rotation.x = Math.PI / 2;
     body.position.set(0, 0, 0);
     skin.add(body);
@@ -2046,7 +2061,7 @@ function buildFigure() {
     head.position.set(0, 0, 0.5);
     skin.add(head);
   } else if (explorer.currentSpecies === 'horse') {
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.5, 4, 8), skinMat);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.25, 0.6, 8), skinMat);
     body.position.set(0, 0.7, 0);
     skin.add(body);
     const head = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.3, 8), skinMat);
@@ -2057,13 +2072,13 @@ function buildFigure() {
   figure.add(skin);
   explorer.skinMesh = skin;
   
-  // Structure meshes
+  // --- STRUCTURE MESHES ---
   const materials = {
-    skeletal: new THREE.MeshPhongMaterial({ color: 0xe8ecf5, shininess: 40 }),
+    skeletal: new THREE.MeshPhongMaterial({ color: 0xe8ecf5, shininess: 40, emissive: 0x222233, emissiveIntensity: 0.05 }),
     muscular: new THREE.MeshPhongMaterial({ color: 0xd05a52, shininess: 15 }),
-    circulatory: new THREE.MeshPhongMaterial({ color: 0xe23a52, shininess: 30 }),
+    circulatory: new THREE.MeshPhongMaterial({ color: 0xe23a52, shininess: 30, emissive: 0x441111, emissiveIntensity: 0.1 }),
     nervous: new THREE.MeshPhongMaterial({ color: 0xf2d34c, emissive: 0x332b00, shininess: 30 }),
-    organs: new THREE.MeshPhongMaterial({ color: 0x6fb8e0, shininess: 25 }),
+    organs: new THREE.MeshPhongMaterial({ color: 0x6fb8e0, shininess: 25, emissive: 0x003344, emissiveIntensity: 0.05 }),
     respiratory: new THREE.MeshPhongMaterial({ color: 0x8fd6ff, shininess: 25 })
   };
   
@@ -2072,38 +2087,66 @@ function buildFigure() {
   structures.forEach(s => {
     if (s.id === getRootId(explorer.currentSpecies)) return;
     
-    const geo = new THREE.SphereGeometry(s.radius || 0.06, 12, 12);
+    const radius = s.radius || 0.06;
+    const geo = new THREE.SphereGeometry(radius, 12, 12);
     const mat = materials[s.system] ? materials[s.system].clone() : materials.skeletal.clone();
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(s.pos[0] + offset[0], s.pos[1] + offset[1], s.pos[2] + offset[2]);
+    mesh.position.set(
+      s.pos[0] + offset[0],
+      s.pos[1] + offset[1],
+      s.pos[2] + offset[2]
+    );
     mesh.userData.id = s.id;
-    mesh.userData.baseScale = 1;
     
-    // Highlight if this is a child
     const sysGroup = explorer.groupsBySystem[s.system];
     if (sysGroup) sysGroup.add(mesh);
     explorer.meshesById[s.id] = mesh;
   });
   
-  // Lighting
-  const ambient = new THREE.AmbientLight(0x8899cc, 0.55);
+  // --- LIGHTING ---
+  // Ambient light for base illumination
+  const ambient = new THREE.AmbientLight(0x446688, 0.6);
   scene.add(ambient);
-  const key = new THREE.DirectionalLight(0xffffff, 0.9);
-  key.position.set(2, 4, 3);
+  
+  // Key light from front-right
+  const key = new THREE.DirectionalLight(0xffffff, 1.0);
+  key.position.set(3, 4, 4);
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x4fe3d6, 0.4);
-  rim.position.set(-3, 1, -2);
+  
+  // Fill light from left
+  const fill = new THREE.DirectionalLight(0x88ccff, 0.4);
+  fill.position.set(-3, 2, 2);
+  scene.add(fill);
+  
+  // Rim light from behind
+  const rim = new THREE.DirectionalLight(0x4fe3d6, 0.5);
+  rim.position.set(-2, 1, -4);
   scene.add(rim);
   
-  // Ground
-  const groundGeo = new THREE.CircleGeometry(1.6, 48);
-  const groundMat = new THREE.MeshBasicMaterial({ color: 0x0d1830, transparent: true, opacity: 0.5 });
+  // Point light from below for glow
+  const bottom = new THREE.PointLight(0x4fe3d6, 0.3, 5);
+  bottom.position.set(0, -1, 0);
+  scene.add(bottom);
+  
+  // --- GROUND ---
+  const groundGeo = new THREE.CircleGeometry(2.0, 48);
+  const groundMat = new THREE.MeshBasicMaterial({ 
+    color: 0x0a0e1a, 
+    transparent: true, 
+    opacity: 0.6,
+    side: THREE.DoubleSide
+  });
   const ground = new THREE.Mesh(groundGeo, groundMat);
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.05;
   figure.add(ground);
   
   explorer.figure = figure;
+  
+  // Reset camera to see the figure
+  explorer.orbit.target.set(0, 1.0, 0);
+  explorer.orbit.radius = 4.2;
+  updateExplorerCamera();
 }
 
 function initExplorerIfNeeded() {
@@ -2111,27 +2154,53 @@ function initExplorerIfNeeded() {
   explorer.initialized = true;
   
   const wrap = $('#explorerCanvasWrap');
+  
+  // Create scene with background color
   explorer.scene = new THREE.Scene();
-  explorer.scene.fog = new THREE.FogExp2(0x060910, 0.05);
+  explorer.scene.background = new THREE.Color(0x060910);
+  explorer.scene.fog = new THREE.FogExp2(0x060910, 0.03);
+  
   const w = wrap.clientWidth || window.innerWidth;
   const h = wrap.clientHeight || window.innerHeight;
+  
   explorer.camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-  explorer.renderer = new THREE.WebGLRenderer({ antialias: true });
+  explorer.camera.position.set(2, 1.5, 4);
+  explorer.camera.lookAt(0, 1.0, 0);
+  
+  explorer.renderer = new THREE.WebGLRenderer({ 
+    antialias: true,
+    alpha: false
+  });
   explorer.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   explorer.renderer.setSize(w, h);
+  explorer.renderer.shadowMap.enabled = true;
+  explorer.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  explorer.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  explorer.renderer.toneMappingExposure = 1.2;
+  
   wrap.appendChild(explorer.renderer.domElement);
   explorer.raycaster = new THREE.Raycaster();
   
+  // Build the figure
   buildFigure();
+  
+  // Set initial camera
+  explorer.orbit.target.set(0, 1.0, 0);
+  explorer.orbit.radius = 4.2;
   updateExplorerCamera();
   
+  // --- EVENT LISTENERS ---
   const dom = explorer.renderer.domElement;
   dom.addEventListener('pointerdown', e => {
     explorer.dragging = true;
     explorer.lastX = e.clientX;
     explorer.lastY = e.clientY;
   });
-  window.addEventListener('pointerup', () => explorer.dragging = false);
+  
+  window.addEventListener('pointerup', () => {
+    explorer.dragging = false;
+  });
+  
   window.addEventListener('pointermove', e => {
     if (!explorer.dragging) return;
     const dx = e.clientX - explorer.lastX;
@@ -2142,11 +2211,13 @@ function initExplorerIfNeeded() {
     explorer.orbit.phi = clamp(explorer.orbit.phi - dy * 0.006, 0.35, 2.4);
     updateExplorerCamera();
   });
+  
   dom.addEventListener('wheel', e => {
     e.preventDefault();
     explorer.orbit.radius = clamp(explorer.orbit.radius + e.deltaY * 0.0022, 1.2, 8);
     updateExplorerCamera();
   }, { passive: false });
+  
   dom.addEventListener('click', e => {
     if (Math.abs(e.clientX - explorer.lastX) > 4) return;
     onExplorerClick(e);
@@ -2162,7 +2233,10 @@ function initExplorerIfNeeded() {
     explorer.renderer.setSize(w2, h2);
   });
   
+  // Start animation loop
   animateExplorer();
+  
+  toast('3D viewer initialized');
 }
 
 function updateExplorerCamera() {
@@ -2191,12 +2265,14 @@ function onExplorerClick(e) {
 
 function animateExplorer() {
   requestAnimationFrame(animateExplorer);
-  if (!$('#explorerView').classList.contains('active')) return;
+  
+  // Always render, even if not active (to prevent flicker)
+  if (!explorer.renderer) return;
   
   const t = (performance.now() - (explorer._clock || performance.now())) / 1000;
   if (!explorer._clock) explorer._clock = performance.now();
   
-  if (explorer.livingBody && userData.settings.anim) {
+  if (explorer.livingBody && userData?.settings?.anim !== false) {
     const heart = explorer.meshesById['heart'];
     if (heart) {
       const s = 1 + Math.sin(t * 4.2) * 0.14;
@@ -2226,7 +2302,10 @@ function animateExplorer() {
   
   if (explorer.nightLab) {
     Object.values(explorer.meshesById).forEach(m => {
-      if (m.material) m.material.emissive = new THREE.Color(0x1a3a5a);
+      if (m.material) {
+        m.material.emissive = new THREE.Color(0x1a3a5a);
+        m.material.emissiveIntensity = 0.3;
+      }
     });
   }
   
